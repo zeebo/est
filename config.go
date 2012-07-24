@@ -12,20 +12,18 @@ type Config struct {
 }
 
 type MongoConfig struct {
-	Host       string `json:",omitempty"`
-	Port       string `json:",omitempty"`
-	Username   string `json:",omitempty"`
-	Password   string `json:",omitempty"`
-	Database   string `json:",omitempty"`
-	Collection string `json:",omitempty"`
+	Host     string `json:",omitempty"`
+	Port     string `json:",omitempty"`
+	Username string `json:",omitempty"`
+	Password string `json:",omitempty"`
+	Database string `json:",omitempty"`
 }
 
 var defaultConfig = &Config{
 	Backend: "mongo",
 	MongoConfig: MongoConfig{
-		Host:       "localhost",
-		Database:   "est",
-		Collection: "est",
+		Host:     "localhost",
+		Database: "est",
 	},
 }
 

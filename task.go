@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+type startLog struct {
+	Name string
+	When time.Time
+}
+
 type Task struct {
 	Name string
 
