@@ -27,27 +27,9 @@ func start(c *command) {
 		c.Usage(1)
 	}
 
-	log, err := defaultBackend.Status()
-	if err != nil {
+	if err := stopIfStarted(); err != nil {
 		c.Error(err)
 	}
-	if log != nil {
-		fmt.Println("already working on", log.Name)
-		if err := defaultBackend.Stop(); err != nil {
-			c.Error(err)
-		}
-		dur := time.Since(log.When)
-		fmt.Println("adding", dur, "to", log.Name)
-
-		ann := Annotation{
-			When:        time.Now(),
-			ActualDelta: dur,
-		}
-		if err := defaultBackend.AddAnnotation(log.Name, ann); err != nil {
-			c.Error(err)
-		}
-	}
-
 	task, err := defaultBackend.Load(args[0])
 	if err != nil {
 		c.Error(err)
@@ -58,4 +40,29 @@ func start(c *command) {
 
 	fmt.Println("started working on", task.Name)
 	fmt.Println(task)
+}
+
+func stopIfStarted() (err error) {
+	log, err := defaultBackend.Status()
+	if err != nil {
+		return
+	}
+	if log == nil {
+		return
+	}
+	fmt.Println("already working on", log.Name)
+	if err = defaultBackend.Stop(); err != nil {
+		return
+	}
+	dur := time.Since(log.When)
+	fmt.Println("adding", dur, "to", log.Name)
+
+	ann := Annotation{
+		When:        time.Now(),
+		ActualDelta: dur,
+	}
+	if err = defaultBackend.AddAnnotation(log.Name, ann); err != nil {
+		return
+	}
+	return
 }
