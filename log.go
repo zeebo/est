@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"sort"
 	"text/template"
@@ -153,7 +154,10 @@ func log(c *command) {
 		}
 		fmt.Printf("%s\n", b)
 	case logParams.logCal:
-		fmt.Println("not implemented yet")
+		err := logPrintCal(tasks)
+		if err != nil {
+			c.Error(err)
+		}
 	}
 }
 
@@ -177,3 +181,93 @@ func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 const defaultLogTemplate = `{{.}}
 {{range .Annotations}}{{$.Name | printf "% -20s"}}{{.When.Format "2006-01-02 15:04:05" | printf "% -20s"}}{{if .EstimateDelta}}Estimate: {{.EstimateDelta}}{{end}}{{if .ActualDelta}}Actual:   {{.ActualDelta}}{{end}}
 {{end}}`
+
+const logCalendarTemplate = `BEGIN:VEVENT
+CREATED:{{.Now.Format "20060102T150405Z"}}
+LAST-MODIFIED:{{.Now.Format "20060102T150405Z"}}
+UID:{{.UID}}
+SUMMARY:{{.Name}}
+DTSTART;TZID=America/New_York:{{.Start.Format "20060102T150405"}}
+DTEND;TZID=America/New_York:{{.End.Format "20060102T150405"}}
+END:VEVENT
+`
+
+func logPrintCal(tasks []*Task) (err error) {
+	//print the header
+	fmt.Println(`BEGIN:VCALENDAR
+PRODID:-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:America/New_York
+X-LIC-LOCATION:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
+END:STANDARD
+END:VTIMEZONE`)
+
+	//be sure the print the footer
+	defer fmt.Println(`END:VCALENDAR`)
+
+	//parse our template
+	t, err := template.New("").Parse(logCalendarTemplate)
+	if err != nil {
+		return
+	}
+
+	//seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	//define our type for the template
+	type calendarEntry struct {
+		Now        time.Time
+		Name       string
+		UID        string
+		Start, End time.Time
+	}
+
+	//grab our location:
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		return
+	}
+
+	//loop over nonzero annotations
+	for _, task := range tasks {
+		for _, anno := range task.Annotations {
+			if anno.ActualDelta == 0 {
+				continue
+			}
+
+			entry := calendarEntry{
+				Now:   time.Now(),
+				UID:   randUID(),
+				Name:  task.Name,
+				Start: anno.When.Add(-1 * anno.ActualDelta).In(loc),
+				End:   anno.When.In(loc),
+			}
+
+			t.Execute(os.Stdout, entry)
+		}
+	}
+	return
+}
+
+func randUID() string {
+	// be6a8aa0-56d0-4b4c-bd76-a35b237e9efb
+	bytes := make([]byte, 16)
+	for i := range bytes {
+		bytes[i] = byte(rand.Intn(256))
+	}
+	return fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
+}
