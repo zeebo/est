@@ -69,6 +69,10 @@ func gen(c *command) {
 		c.Usage(1)
 	}
 
+	if genParams.n <= 0 {
+		c.Error(fmt.Errorf("must specify positive integer for number of runs"))
+	}
+
 	//parse out the set of durations
 	durs := make([]time.Duration, 0, len(args))
 	for _, arg := range args {
@@ -134,7 +138,7 @@ func gen(c *command) {
 		fmt.Println("Percentiles:")
 	}
 	for _, ptile := range ptiles {
-		i := int(ptile*float64(genParams.n)) - 1
+		i := int(ptile * float64(genParams.n-1))
 		pcent := ptile * 100.0
 		bars := strings.Repeat("|", int(pcent/5.0))
 		fmt.Printf("%7.2f [% -20s]: %s\n", pcent, bars, results[i])
@@ -143,9 +147,9 @@ func gen(c *command) {
 	if len(confs) > 0 {
 		fmt.Println("Confidences:")
 	}
-	median := genParams.n / 2
+	median := (genParams.n - 1) / 2
 	for _, conf := range confs {
-		offset := int(conf * float64(genParams.n/2))
+		offset := int(conf * float64(median))
 		pcent := conf * 100.0
 		low, high := results[median-offset], results[median+offset]
 		fmt.Printf("%7.2f (% -20s to % -20s) var: %s\n", pcent, low, high, high-low)
