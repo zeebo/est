@@ -24,7 +24,7 @@ func init() {
 
 	cmd.flags.StringVar(&genParams.ptiles, "p", "25,50,75,90", "comma separated list of percentiles")
 	cmd.flags.IntVar(&genParams.days, "days", 60, "number of days of history to use")
-	cmd.flags.IntVar(&genParams.n, "n", 10000, "number of iterations")
+	cmd.flags.IntVar(&genParams.n, "n", 100000, "number of iterations")
 
 	commands["gen"] = cmd
 }
@@ -89,6 +89,9 @@ func gen(c *command) {
 		}
 	}
 
+	//seed the generator
+	rand.Seed(time.Now().UnixNano())
+
 	//create our result array
 	results := make([]time.Duration, 0, genParams.n)
 	for i := 0; i < genParams.n; i++ {
@@ -100,7 +103,9 @@ func gen(c *command) {
 	var j int
 	for i := 0; i < len(results) && j < len(ptiles); i++ {
 		if int(ptiles[j]*float64(genParams.n))-1 <= i {
-			fmt.Printf("% 5.2f%%: %s\n", ptiles[j]*100.0, results[i])
+			pcent := ptiles[j] * 100.0
+			bars := strings.Repeat("|", int(pcent/5.0))
+			fmt.Printf("%7.2f [% -20s]: %s\n", pcent, bars, results[i])
 			j++
 		}
 	}
