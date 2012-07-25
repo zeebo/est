@@ -15,7 +15,7 @@ type Task struct {
 
 	Estimate    time.Duration
 	Actual      time.Duration
-	Annotations []Annotation
+	Annotations []Annotation `xml:"Annotation"`
 }
 
 type Annotation struct {
@@ -31,15 +31,17 @@ func (t *Task) Apply(ann Annotation) {
 }
 
 func (t Task) String() string {
-	var ratio float64
-	if t.Estimate != 0 {
-		ratio = float64(t.Actual) / float64(t.Estimate)
-	}
-
 	return fmt.Sprintf("%s: %s/%s (%.2f)",
 		t.Name,
 		t.Actual,
 		t.Estimate,
-		ratio,
+		t.Ratio(),
 	)
+}
+
+func (t Task) Ratio() (ratio float64) {
+	if t.Estimate != 0 {
+		ratio = float64(t.Actual) / float64(t.Estimate)
+	}
+	return
 }

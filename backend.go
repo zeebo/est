@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 type Backend interface {
@@ -11,6 +12,7 @@ type Backend interface {
 	Start(name string) (err error)
 	Stop() (err error)
 	Status() (log *startLog, err error)
+	Find(regex string, before, after time.Time) (tasks []*Task, err error)
 }
 
 var defaultBackend Backend

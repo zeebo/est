@@ -19,6 +19,7 @@ type command struct {
 
 func (c *command) Usage(status int) {
 	fmt.Fprintln(os.Stderr, "usage:", c.usage)
+	c.flags.PrintDefaults()
 	os.Exit(status)
 }
 

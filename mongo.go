@@ -106,3 +106,11 @@ func (m *mongoBackend) Status() (log *startLog, err error) {
 	err = m.startlog.Find(nil).One(log)
 	return
 }
+
+func (m *mongoBackend) Find(regex string, before, after time.Time) (tasks []*Task, err error) {
+	err = m.tasks.Find(d{
+		"name":             d{"$regex": regex},
+		"annotations.when": d{"$lt": after, "$gte": before},
+	}).All(&tasks)
+	return
+}
