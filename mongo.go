@@ -70,14 +70,32 @@ func (m *mongoBackend) Load(name string) (task *Task, err error) {
 	return
 }
 
-func (m *mongoBackend) AddAnnotation(name string, a Annotation) (err error) {
+func (m *mongoBackend) AddAnnotation(task *Task, a Annotation) (err error) {
 	//create the change document
 	ch := bson.D{
 		{"$push", d{"annotations": a}},
 		{"$inc", d{"estimate": a.EstimateDelta}},
 		{"$inc", d{"actual": a.ActualDelta}},
 	}
-	err = m.tasks.Update(d{"name": name}, ch)
+	err = m.tasks.Update(d{"name": task.Name}, ch)
+	return
+}
+
+func (m *mongoBackend) PopAnnotation(task *Task) (err error) {
+	if len(task.Annotations) == 0 {
+		err = fmt.Errorf("no annotations to undo")
+	}
+
+	//get the last annotation and negate it
+	a := task.Annotations[len(task.Annotations)-1].Negate()
+
+	//create the change document
+	ch := bson.D{
+		{"$pop", d{"annotations": 1}},
+		{"$inc", d{"estimate": a.EstimateDelta}},
+		{"$inc", d{"actual": a.ActualDelta}},
+	}
+	err = m.tasks.Update(d{"name": task.Name}, ch)
 	return
 }
 

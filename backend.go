@@ -7,7 +7,8 @@ import (
 
 type Backend interface {
 	Save(task *Task) (err error)
-	AddAnnotation(name string, a Annotation) (err error)
+	AddAnnotation(task *Task, a Annotation) (err error)
+	PopAnnotation(task *Task) (err error)
 	Load(name string) (task *Task, err error)
 	Start(name string) (err error)
 	Stop() (err error)

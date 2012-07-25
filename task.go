@@ -24,6 +24,21 @@ type Annotation struct {
 	ActualDelta   time.Duration
 }
 
+func (a Annotation) Negate() Annotation {
+	return Annotation{
+		When:          a.When,
+		EstimateDelta: -1 * a.EstimateDelta,
+		ActualDelta:   -1 * a.ActualDelta,
+	}
+}
+
+func (a Annotation) String() string {
+	if a.EstimateDelta > 0 {
+		return fmt.Sprint(a.When, " Estimate:", a.EstimateDelta)
+	}
+	return fmt.Sprint(a.When, " Actual:", a.ActualDelta)
+}
+
 func (t *Task) Apply(ann Annotation) {
 	t.Estimate += ann.EstimateDelta
 	t.Actual += ann.ActualDelta

@@ -39,7 +39,7 @@ func addEst(c *command) {
 		When:          time.Now(),
 		EstimateDelta: dur,
 	}
-	if err := defaultBackend.AddAnnotation(task.Name, ann); err != nil {
+	if err := defaultBackend.AddAnnotation(task, ann); err != nil {
 		c.Error(err)
 	}
 	task.Apply(ann)

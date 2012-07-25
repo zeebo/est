@@ -45,18 +45,19 @@ func stop(c *command) {
 	dur := time.Since(log.When)
 	fmt.Println("adding", dur, "to", log.Name)
 
+	task, err := defaultBackend.Load(log.Name)
+	if err != nil {
+		c.Error(err)
+	}
+
 	ann := Annotation{
 		When:        time.Now(),
 		ActualDelta: dur,
 	}
-	if err := defaultBackend.AddAnnotation(log.Name, ann); err != nil {
+	if err := defaultBackend.AddAnnotation(task, ann); err != nil {
 		c.Error(err)
 	}
 
-	task, err := defaultBackend.Load(log.Name)
-	if err != nil {
-		return
-	}
-
+	task.Apply(ann)
 	fmt.Println(task)
 }

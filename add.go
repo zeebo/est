@@ -39,7 +39,7 @@ func add(c *command) {
 		When:        time.Now(),
 		ActualDelta: dur,
 	}
-	if err := defaultBackend.AddAnnotation(task.Name, ann); err != nil {
+	if err := defaultBackend.AddAnnotation(task, ann); err != nil {
 		c.Error(err)
 	}
 	task.Apply(ann)

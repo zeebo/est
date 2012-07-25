@@ -61,7 +61,11 @@ func stopIfStarted() (err error) {
 		When:        time.Now(),
 		ActualDelta: dur,
 	}
-	if err = defaultBackend.AddAnnotation(log.Name, ann); err != nil {
+	task, err := defaultBackend.Load(log.Name)
+	if err != nil {
+		return
+	}
+	if err = defaultBackend.AddAnnotation(task, ann); err != nil {
 		return
 	}
 	return
