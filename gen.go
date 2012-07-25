@@ -31,14 +31,12 @@ func init() {
 	commands["gen"] = cmd
 }
 
-type genParamsType struct {
+var genParams struct {
 	ptiles string
 	confs  string
 	days   int
 	n      int
 }
-
-var genParams genParamsType
 
 func parseFloats(in string) (iles []float64, err error) {
 	if strings.TrimSpace(in) == "" {

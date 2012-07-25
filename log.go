@@ -35,7 +35,7 @@ func init() {
 	commands["log"] = cmd
 }
 
-type logParamsType struct {
+var logParams struct {
 	logToday    bool
 	logWeek     bool
 	logLastWeek bool
@@ -44,8 +44,6 @@ type logParamsType struct {
 	logXML      bool
 	logCal      bool
 }
-
-var logParams logParamsType
 
 type minTime time.Time
 type maxTime time.Time
@@ -252,7 +250,7 @@ END:VTIMEZONE`)
 			entry := calendarEntry{
 				Now:   time.Now(),
 				UID:   randUID(),
-				Name:  task.Name,
+				Name:  fmt.Sprintf("%s (%s)", task.Name, task.Estimate),
 				Start: anno.When.Add(-1 * anno.ActualDelta).In(loc),
 				End:   anno.When.In(loc),
 			}
