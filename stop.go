@@ -20,6 +20,7 @@ func init() {
 	}
 
 	commands["stop"] = cmd
+	commands["done"] = cmd //add done as an alias
 }
 
 func stop(c *command) {
