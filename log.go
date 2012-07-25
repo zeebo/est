@@ -20,7 +20,7 @@ func init() {
 
 		needsBackend: true,
 
-		flags: flag.NewFlagSet("help", flag.ExitOnError),
+		flags: flag.NewFlagSet("log", flag.ExitOnError),
 		run:   log,
 	}
 
