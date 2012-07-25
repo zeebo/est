@@ -81,6 +81,12 @@ func (m *mongoBackend) AddAnnotation(name string, a Annotation) (err error) {
 	return
 }
 
+func (m *mongoBackend) Rename(oldn, newn string) (err error) {
+	ch := d{"$set": d{"name": newn}}
+	err = m.tasks.Update(d{"name": oldn}, ch)
+	return
+}
+
 func (m *mongoBackend) Start(name string) (err error) {
 	err = m.startlog.Insert(startLog{
 		Name: name,
