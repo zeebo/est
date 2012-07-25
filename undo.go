@@ -42,6 +42,6 @@ func undo(c *command) {
 	task.Apply(anno.Negate())
 
 	//print the new data and the removed annotation
-	fmt.Println(task)
 	fmt.Println("removed:", anno)
+	fmt.Println(task)
 }
