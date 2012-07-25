@@ -16,7 +16,7 @@ func init() {
 	cmd := &command{
 		short: "displays info for estimates",
 		long:  "afsdf",
-		usage: "log [-today|-week|-lastweek] [-template=template] [-json|-xml|-cal] [regex]",
+		usage: "log [-today|-week|-lastweek] [-template=template] [-json|-xml|-cal|-cmds] [regex]",
 
 		needsBackend: true,
 
@@ -31,6 +31,7 @@ func init() {
 	cmd.flags.BoolVar(&logParams.logJson, "json", false, "show estimates in json format")
 	cmd.flags.BoolVar(&logParams.logXML, "xml", false, "show estimates in xml format")
 	cmd.flags.BoolVar(&logParams.logCal, "cal", false, "show estimates caldav format")
+	cmd.flags.BoolVar(&logParams.logCmds, "cmds", false, "show estimates in the commands to make them")
 
 	commands["log"] = cmd
 }
@@ -43,6 +44,7 @@ var logParams struct {
 	logJson     bool
 	logXML      bool
 	logCal      bool
+	logCmds     bool
 }
 
 type minTime time.Time
@@ -124,6 +126,9 @@ func log(c *command) {
 	sort.Sort(sortedTasks(tasks))
 
 	switch {
+	case logParams.logCmds:
+		logParams.logTemplate = cmdTemplate
+		fallthrough
 	default:
 		if logParams.logTemplate == "" {
 			logParams.logTemplate = defaultLogTemplate
@@ -178,6 +183,10 @@ func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
 const defaultLogTemplate = `{{.}}
 {{range .Annotations}}{{$.Name | printf "% -20s"}}{{.When.Local.Format "2006-01-02 15:04:05" | printf "% -20s"}}{{if .EstimateDelta}}Estimate: {{.EstimateDelta}}{{end}}{{if .ActualDelta}}Actual:   {{.ActualDelta}}{{end}}
+{{end}}`
+
+const cmdTemplate = `est new {{.Name}}
+{{range .Annotations}}est {{if .EstimateDelta}}add-est{{else}}add{{end}} {{$.Name}} -when="{{.When.Local.Format "2006-01-02 15:04:05"}}" {{if .EstimateDelta}}{{.EstimateDelta}}{{else}}{{.ActualDelta}}{{end}}
 {{end}}`
 
 const logCalendarTemplate = `BEGIN:VEVENT
