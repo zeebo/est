@@ -34,9 +34,9 @@ func (a Annotation) Negate() Annotation {
 
 func (a Annotation) String() string {
 	if a.EstimateDelta > 0 {
-		return fmt.Sprint(a.When, " Estimate:", a.EstimateDelta)
+		return fmt.Sprintf(whenFormatString+"Estimate: %s", a.When.Format(timeFormat), a.EstimateDelta)
 	}
-	return fmt.Sprint(a.When, " Actual:", a.ActualDelta)
+	return fmt.Sprintf(whenFormatString+"Actual: %s", a.When.Format(timeFormat), a.ActualDelta)
 }
 
 func (t *Task) Apply(ann Annotation) {

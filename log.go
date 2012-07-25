@@ -181,12 +181,12 @@ func (t sortedTasks) Less(i, j int) bool {
 }
 func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
-const defaultLogTemplate = `{{.}}
-{{range .Annotations}}{{$.Name | printf "% -20s"}}{{.When.Local.Format "2006-01-02 15:04:05" | printf "% -20s"}}{{if .EstimateDelta}}Estimate: {{.EstimateDelta}}{{end}}{{if .ActualDelta}}Actual:   {{.ActualDelta}}{{end}}
+var defaultLogTemplate = `{{.}}
+{{range .Annotations}}{{$.Name | printf "% -20s"}}{{.}}
 {{end}}`
 
-const cmdTemplate = `est new {{.Name}}
-{{range .Annotations}}est {{if .EstimateDelta}}add-est{{else}}add{{end}} {{$.Name}} -when="{{.When.Local.Format "2006-01-02 15:04:05"}}" {{if .EstimateDelta}}{{.EstimateDelta}}{{else}}{{.ActualDelta}}{{end}}
+var cmdTemplate = `est new {{.Name}}
+{{range .Annotations}}est {{if .EstimateDelta}}add-est{{else}}add{{end}} {{$.Name}} -when="` + whenTemplateString + `" {{if .EstimateDelta}}{{.EstimateDelta}}{{else}}{{.ActualDelta}}{{end}}
 {{end}}`
 
 const logCalendarTemplate = `BEGIN:VEVENT
