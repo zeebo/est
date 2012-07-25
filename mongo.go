@@ -87,6 +87,11 @@ func (m *mongoBackend) Rename(oldn, newn string) (err error) {
 	return
 }
 
+func (m *mongoBackend) Remove(name string) (err error) {
+	err = m.tasks.Remove(d{"name": name})
+	return
+}
+
 func (m *mongoBackend) Start(name string) (err error) {
 	err = m.startlog.Insert(startLog{
 		Name: name,

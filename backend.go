@@ -14,6 +14,7 @@ type Backend interface {
 	Status() (log *startLog, err error)
 	Find(regex string, before, after time.Time) (tasks []*Task, err error)
 	Rename(oldn, newn string) (err error)
+	Remove(name string) (err error)
 }
 
 var defaultBackend Backend
