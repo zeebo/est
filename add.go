@@ -6,11 +6,13 @@ import (
 	"time"
 )
 
+const timeFormat = "2006-01-02 15:04:05"
+
 func init() {
 	cmd := &command{
 		short: "adds actual time to task",
 		long:  "gsafdg",
-		usage: "add <task> <time>",
+		usage: "add [-when=] <task> <time>",
 
 		needsBackend: true,
 
@@ -18,7 +20,7 @@ func init() {
 		run:   add(makeActualAnno),
 	}
 
-	cmd.flags.StringVar(&addParams.addWhen, "when", "", "when the task should be added (default now)")
+	cmd.flags.StringVar(&addParams.addWhen, "when", "", "when the task should be added (default now). format: "+timeFormat)
 
 	commands["add"] = cmd
 }
@@ -27,7 +29,7 @@ func init() {
 	cmd := &command{
 		short: "adds estimate time to task",
 		long:  "gsafdg",
-		usage: "add-est <task> <time>",
+		usage: "add-est [-when=] <task> <time>",
 
 		needsBackend: true,
 
@@ -35,7 +37,7 @@ func init() {
 		run:   add(makeEstimateAnno),
 	}
 
-	cmd.flags.StringVar(&addParams.addWhen, "when", "", "when the task should be added (default now)")
+	cmd.flags.StringVar(&addParams.addWhen, "when", "", "when the task should be added (default now). format: "+timeFormat)
 
 	commands["add-est"] = cmd
 }
@@ -60,6 +62,24 @@ func makeEstimateAnno(when time.Time, dur time.Duration) Annotation {
 
 type annoMaker func(time.Time, time.Duration) Annotation
 
+func ParseLocal(format, value string) (when time.Time, err error) {
+	when, err = time.Parse(format, value)
+	if err != nil {
+		return
+	}
+	when = time.Date(
+		when.Year(),
+		when.Month(),
+		when.Day(),
+		when.Hour(),
+		when.Minute(),
+		when.Second(),
+		when.Nanosecond(),
+		time.Local,
+	)
+	return
+}
+
 func add(maker annoMaker) func(*command) {
 	return func(c *command) {
 		args := c.flags.Args()
@@ -77,10 +97,11 @@ func add(maker annoMaker) func(*command) {
 
 		when := time.Now()
 		if addParams.addWhen != "" {
-			when, err = time.Parse("2006-01-02 15:04:05", addParams.addWhen)
+			when, err = ParseLocal(timeFormat, addParams.addWhen)
 			if err != nil {
 				c.Error(err)
 			}
+			fmt.Println(when)
 		}
 
 		ann := maker(when, dur)
@@ -88,6 +109,7 @@ func add(maker annoMaker) func(*command) {
 			c.Error(err)
 		}
 		task.Apply(ann)
+		fmt.Println("added:", ann)
 		fmt.Println(task)
 	}
 }

@@ -177,7 +177,7 @@ func (t sortedTasks) Less(i, j int) bool {
 func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
 const defaultLogTemplate = `{{.}}
-{{range .Annotations}}{{$.Name | printf "% -20s"}}{{.When.Format "2006-01-02 15:04:05" | printf "% -20s"}}{{if .EstimateDelta}}Estimate: {{.EstimateDelta}}{{end}}{{if .ActualDelta}}Actual:   {{.ActualDelta}}{{end}}
+{{range .Annotations}}{{$.Name | printf "% -20s"}}{{.When.Local.Format "2006-01-02 15:04:05" | printf "% -20s"}}{{if .EstimateDelta}}Estimate: {{.EstimateDelta}}{{end}}{{if .ActualDelta}}Actual:   {{.ActualDelta}}{{end}}
 {{end}}`
 
 const logCalendarTemplate = `BEGIN:VEVENT
