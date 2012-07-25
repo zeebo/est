@@ -41,6 +41,10 @@ type genParamsType struct {
 var genParams genParamsType
 
 func parseFloats(in string) (iles []float64, err error) {
+	if strings.TrimSpace(in) == "" {
+		return
+	}
+
 	ptilestrs := strings.Split(in, ",")
 	iles = make([]float64, 0, len(ptilestrs))
 	var f float64
@@ -78,11 +82,11 @@ func gen(c *command) {
 	//parse out the set of percentiles and confidence intervals
 	ptiles, err := parseFloats(genParams.ptiles)
 	if err != nil {
-		return
+		c.Error(err)
 	}
 	confs, err := parseFloats(genParams.confs)
 	if err != nil {
-		return
+		c.Error(err)
 	}
 
 	//find the history section we need
