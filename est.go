@@ -11,7 +11,7 @@ import (
 var configPath string
 
 func main() {
-	const defaultPath = "~/.est"
+	defaultPath := os.ExpandEnv("$HOME/.est")
 	flag.StringVar(&configPath, "config", defaultPath, "path to configuration file")
 	flag.Parse()
 
@@ -64,8 +64,9 @@ configLoaded:
 
 func Usage(status int) {
 	fmt.Fprintln(os.Stderr, "est is a tool for managing estimates\n")
-	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "\test command [args]\n")
+	fmt.Fprintln(os.Stderr, "usage: est [-config=] command [args]")
+	flag.PrintDefaults()
+	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "The commands are:\n")
 
 	names := make([]string, 0, len(commands))

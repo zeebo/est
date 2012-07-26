@@ -29,7 +29,7 @@ func help(c *command) {
 
 	topic := c.flags.Arg(0)
 	if cmd, ok := commands[topic]; ok {
-		fmt.Println("usage:", cmd.usage)
+		fmt.Println("usage: est", cmd.usage)
 		cmd.flags.PrintDefaults()
 		fmt.Println("")
 		fmt.Println(cmd.long)
