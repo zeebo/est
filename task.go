@@ -11,7 +11,8 @@ type startLog struct {
 }
 
 type Task struct {
-	Name string
+	Name    string
+	logName string
 
 	Estimate    time.Duration
 	Actual      time.Duration
@@ -68,8 +69,21 @@ func (t *Task) Apply(ann Annotation) {
 }
 
 func (t Task) String() string {
-	return fmt.Sprintf("%s: %s/%s (%.2f)",
+	return fmt.Sprintf("%s: %s / %s (%0.2f)",
 		t.Name,
+		t.Actual,
+		t.Estimate,
+		t.Ratio(),
+	)
+}
+
+func (t Task) LogName() string {
+	return t.logName
+}
+
+func (t Task) Pretty() string {
+	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m",
+		t.logName,
 		t.Actual,
 		t.Estimate,
 		t.Ratio(),

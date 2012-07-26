@@ -125,6 +125,18 @@ func log(c *command) {
 	//recent on top
 	sort.Sort(sortedTasks(tasks))
 
+	//find the maximum task name width and set the logName fields
+	max := 0
+	for _, task := range tasks {
+		if len(task.Name) > max {
+			max = len(task.Name)
+		}
+	}
+	format := fmt.Sprintf("%% -%ds", max+1)
+	for _, task := range tasks {
+		task.logName = fmt.Sprintf(format, task.Name)
+	}
+
 	switch {
 	case logParams.logCmds:
 		logParams.logTemplate = cmdTemplate
@@ -138,7 +150,10 @@ func log(c *command) {
 			c.Error(err)
 		}
 		for _, task := range tasks {
-			t.Execute(os.Stdout, task)
+			if err := t.Execute(os.Stdout, task); err != nil {
+				fmt.Println("")
+				c.Error(err)
+			}
 			fmt.Println("")
 		}
 	case logParams.logJson:
@@ -182,8 +197,8 @@ func (t sortedTasks) Less(i, j int) bool {
 }
 func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
-var defaultLogTemplate = `{{.}}
-{{range .Annotations}}{{$.Name | printf "% -20s"}}{{.}}
+var defaultLogTemplate = `{{.Pretty}}
+{{range .Annotations}}{{$.LogName}}{{.}}
 {{end}}`
 
 var cmdTemplate = `est new {{.Name}}
