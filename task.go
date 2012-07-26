@@ -14,9 +14,10 @@ type Task struct {
 	Name    string
 	logName string
 
-	Estimate    time.Duration
-	Actual      time.Duration
-	Annotations []Annotation `xml:"Annotation"`
+	Estimate     time.Duration
+	Actual       time.Duration
+	Annotations  []Annotation `xml:"Annotation"`
+	matchedAnnos []Annotation
 }
 
 type Annotation struct {
@@ -75,6 +76,21 @@ func (t *Task) Apply(ann Annotation) {
 	t.Estimate += ann.EstimateDelta
 	t.Actual += ann.ActualDelta
 	t.Annotations = append(t.Annotations, ann)
+}
+
+func (t *Task) setupTemplate(width int, low, high time.Time) {
+	format := fmt.Sprintf("%% -%ds", width)
+	t.logName = fmt.Sprintf(format, t.Name)
+
+	for _, a := range t.Annotations {
+		if a.When.Before(high) && a.When.After(low) {
+			t.matchedAnnos = append(t.matchedAnnos, a)
+		}
+	}
+}
+
+func (t Task) MatchedAnnotations() []Annotation {
+	return t.matchedAnnos
 }
 
 func (t Task) String() string {

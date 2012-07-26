@@ -132,18 +132,21 @@ func log(c *command) {
 			max = len(task.Name)
 		}
 	}
-	format := fmt.Sprintf("%% -%ds", max+1)
 	for _, task := range tasks {
-		task.logName = fmt.Sprintf(format, task.Name)
+		task.setupTemplate(max+1, low.time(), high.time())
 	}
+	var showMatched bool
 
 	switch {
 	case logParams.logCmds:
+		showMatched = true
 		logParams.logTemplate = cmdTemplate
 		fallthrough
 	default:
 		if logParams.logTemplate == "" {
 			logParams.logTemplate = defaultLogTemplate
+		} else {
+			showMatched = true
 		}
 		t, err := template.New("").Parse(logParams.logTemplate)
 		if err != nil {
@@ -151,6 +154,11 @@ func log(c *command) {
 		}
 		for _, task := range tasks {
 			if err := t.Execute(os.Stdout, task); err != nil {
+				//if we're showing matched with the default templates and there
+				//arent any matched annotations, skip it.
+				if showMatched && len(task.matchedAnnos) == 0 {
+					continue
+				}
 				fmt.Println("")
 				c.Error(err)
 			}
@@ -198,11 +206,11 @@ func (t sortedTasks) Less(i, j int) bool {
 func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
 var defaultLogTemplate = `{{.Pretty}}
-{{range .Annotations}}{{$.LogName}}{{.}}
+{{range .MatchedAnnotations}}{{$.LogName}}{{.}}
 {{end}}`
 
 var cmdTemplate = `est new {{.Name}}
-{{range .Annotations}}{{.Command}}
+{{range .MatchedAnnotations}}{{.Command}}
 {{end}}`
 
 const logCalendarTemplate = `BEGIN:VEVENT
