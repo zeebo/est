@@ -9,7 +9,7 @@ func init() {
 	cmd := &command{
 		short: "removes the last annotation from a task",
 		long:  "gsafdg",
-		usage: "undo <name>",
+		usage: "undo [-cmd] <name>",
 
 		needsBackend: true,
 
@@ -17,7 +17,13 @@ func init() {
 		run:   undo,
 	}
 
+	cmd.flags.BoolVar(&undoParams.cmd, "cmd", false, "print annotation as a command")
+
 	commands["undo"] = cmd
+}
+
+var undoParams struct {
+	cmd bool
 }
 
 func undo(c *command) {
@@ -42,6 +48,10 @@ func undo(c *command) {
 	task.Apply(anno.Negate())
 
 	//print the new data and the removed annotation
-	fmt.Println("removed:", anno)
+	if undoParams.cmd {
+		fmt.Println(anno.Command())
+	} else {
+		fmt.Println("removed:", anno)
+	}
 	fmt.Println(task)
 }

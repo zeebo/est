@@ -41,7 +41,7 @@ func (a Annotation) DeltaString() string {
 }
 
 func (a Annotation) WhenString() string {
-	return fmt.Sprintf(whenFormatString, a.When.Local().Format(timeFormat))
+	return fmt.Sprint(a.When.Local().Format(timeFormat))
 }
 
 func (a Annotation) CommandName() string {
@@ -49,6 +49,14 @@ func (a Annotation) CommandName() string {
 		return "add-est"
 	}
 	return "add"
+}
+
+func (a Annotation) Command() string {
+	return fmt.Sprintf(`est %s -when="%s" %s`,
+		a.CommandName(),
+		a.WhenString(),
+		a.Delta(),
+	)
 }
 
 func (a Annotation) Delta() string {
@@ -59,7 +67,8 @@ func (a Annotation) Delta() string {
 }
 
 func (a Annotation) String() string {
-	return fmt.Sprintf("%s%s", a.WhenString(), a.DeltaString())
+	format := fmt.Sprintf("%% -%ds%s", timeFormatLen)
+	return fmt.Sprintf(format, a.WhenString(), a.DeltaString())
 }
 
 func (t *Task) Apply(ann Annotation) {
