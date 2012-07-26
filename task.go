@@ -93,6 +93,20 @@ func (t Task) MatchedAnnotations() []Annotation {
 	return t.matchedAnnos
 }
 
+func (t Task) MatchedEstimate() (x time.Duration) {
+	for _, a := range t.matchedAnnos {
+		x += a.EstimateDelta
+	}
+	return
+}
+
+func (t Task) MatchedActual() (x time.Duration) {
+	for _, a := range t.matchedAnnos {
+		x += a.ActualDelta
+	}
+	return
+}
+
 func (t Task) String() string {
 	return fmt.Sprintf("%s: %s / %s (%0.2f)",
 		t.Name,

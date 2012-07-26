@@ -16,7 +16,7 @@ func init() {
 	cmd := &command{
 		short: "displays info for estimates",
 		long:  "afsdf",
-		usage: "log [-today|-week|-lastweek] [-template=template] [-json|-xml|-cal|-cmds] [regex]",
+		usage: "log [-today|-week|-lastweek] [-summary] [-template=template] [-json|-xml|-cal|-cmds] [regex]",
 
 		needsBackend: true,
 
@@ -24,28 +24,45 @@ func init() {
 		run:   log,
 	}
 
-	cmd.flags.BoolVar(&logParams.logToday, "today", false, "show estimates with changes today")
-	cmd.flags.BoolVar(&logParams.logWeek, "week", false, "show estimates with changes this week")
-	cmd.flags.BoolVar(&logParams.logLastWeek, "lastweek", false, "show estimates with changes last week")
-	cmd.flags.StringVar(&logParams.logTemplate, "template", "", "use this template when displaying tasks")
-	cmd.flags.BoolVar(&logParams.logJson, "json", false, "show estimates in json format")
-	cmd.flags.BoolVar(&logParams.logXML, "xml", false, "show estimates in xml format")
-	cmd.flags.BoolVar(&logParams.logCal, "cal", false, "show estimates caldav format")
-	cmd.flags.BoolVar(&logParams.logCmds, "cmds", false, "show estimates in the commands to make them")
+	cmd.flags.BoolVar(&logParams.today, "today", false, "show estimates with changes today")
+	cmd.flags.BoolVar(&logParams.week, "week", false, "show estimates with changes this week")
+	cmd.flags.BoolVar(&logParams.lastWeek, "lastweek", false, "show estimates with changes last week")
+	cmd.flags.StringVar(&logParams.template, "template", "", "use this template when displaying tasks")
+	cmd.flags.BoolVar(&logParams.json, "json", false, "show estimates in json format")
+	cmd.flags.BoolVar(&logParams.xml, "xml", false, "show estimates in xml format")
+	cmd.flags.BoolVar(&logParams.cal, "cal", false, "show estimates caldav format")
+	cmd.flags.BoolVar(&logParams.cmds, "cmds", false, "show estimates in the commands to make them")
 
 	commands["log"] = cmd
 }
 
 var logParams struct {
-	logToday    bool
-	logWeek     bool
-	logLastWeek bool
-	logTemplate string
-	logJson     bool
-	logXML      bool
-	logCal      bool
-	logCmds     bool
+	today    bool
+	week     bool
+	lastWeek bool
+	template string
+	json     bool
+	xml      bool
+	cal      bool
+	cmds     bool
 }
+
+type sortedTasks []*Task
+
+func (t sortedTasks) Len() int { return len(t) }
+func (t sortedTasks) Less(i, j int) bool {
+	ianno, janno := t[i].Annotations, t[j].Annotations
+	switch {
+	case len(ianno) == 0 && len(janno) == 0:
+		return i < j //no ordering so leave them in place
+	case len(ianno) == 0:
+		return false //we have nothing on i, but something on j, so put j earlier
+	case len(janno) == 0:
+		return true //we have nothing on j, but something on i, so put i earlier
+	}
+	return ianno[len(ianno)-1].When.After(janno[len(janno)-1].When)
+}
+func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
 type minTime time.Time
 type maxTime time.Time
@@ -89,7 +106,7 @@ func log(c *command) {
 	//get the time corresponding to the start of today
 	startToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	if logParams.logToday {
+	if logParams.today {
 		low.update(startToday)
 		high.update(now.AddDate(0, 0, 1))
 	}
@@ -100,7 +117,7 @@ func log(c *command) {
 		startWeek = startWeek.AddDate(0, 0, -1)
 	}
 
-	if logParams.logWeek {
+	if logParams.week {
 		low.update(startWeek)
 		high.update(startWeek.AddDate(0, 0, 7))
 	}
@@ -111,7 +128,7 @@ func log(c *command) {
 		startWeek = startWeek.AddDate(0, 0, -1)
 	}
 
-	if logParams.logLastWeek {
+	if logParams.lastWeek {
 		low.update(startWeek)
 		high.update(startWeek.AddDate(0, 0, 7))
 	}
@@ -138,17 +155,18 @@ func log(c *command) {
 	var showMatched bool
 
 	switch {
-	case logParams.logCmds:
+	case logParams.cmds:
 		showMatched = true
-		logParams.logTemplate = cmdTemplate
+		logParams.template = cmdTemplate
 		fallthrough
+
 	default:
-		if logParams.logTemplate == "" {
-			logParams.logTemplate = defaultLogTemplate
+		if logParams.template == "" {
+			logParams.template = defaulttemplate
 		} else {
 			showMatched = true
 		}
-		t, err := template.New("").Parse(logParams.logTemplate)
+		t, err := template.New("").Parse(logParams.template)
 		if err != nil {
 			c.Error(err)
 		}
@@ -164,13 +182,15 @@ func log(c *command) {
 			}
 			fmt.Println("")
 		}
-	case logParams.logJson:
+
+	case logParams.json:
 		b, err := json.MarshalIndent(tasks, "", "\t")
 		if err != nil {
 			c.Error(err)
 		}
 		fmt.Printf("%s\n", b)
-	case logParams.logXML:
+
+	case logParams.xml:
 		type Tasks struct {
 			Task []*Task
 		}
@@ -180,7 +200,8 @@ func log(c *command) {
 			c.Error(err)
 		}
 		fmt.Printf("%s\n", b)
-	case logParams.logCal:
+
+	case logParams.cal:
 		err := logPrintCal(tasks)
 		if err != nil {
 			c.Error(err)
@@ -188,24 +209,7 @@ func log(c *command) {
 	}
 }
 
-type sortedTasks []*Task
-
-func (t sortedTasks) Len() int { return len(t) }
-func (t sortedTasks) Less(i, j int) bool {
-	ianno, janno := t[i].Annotations, t[j].Annotations
-	switch {
-	case len(ianno) == 0 && len(janno) == 0:
-		return i < j //no ordering so leave them in place
-	case len(ianno) == 0:
-		return false //we have nothing on i, but something on j, so put j earlier
-	case len(janno) == 0:
-		return true //we have nothing on j, but something on i, so put i earlier
-	}
-	return ianno[len(ianno)-1].When.After(janno[len(janno)-1].When)
-}
-func (t sortedTasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
-
-var defaultLogTemplate = `{{.Pretty}}
+var defaulttemplate = `{{.Pretty}}
 {{range .MatchedAnnotations}}{{$.LogName}}{{.}}
 {{end}}`
 
@@ -213,45 +217,15 @@ var cmdTemplate = `est new {{.Name}}
 {{range .MatchedAnnotations}}{{.Command}}
 {{end}}`
 
-const logCalendarTemplate = `BEGIN:VEVENT
-CREATED:{{.Now.Format "20060102T150405Z"}}
-LAST-MODIFIED:{{.Now.Format "20060102T150405Z"}}
-UID:{{.UID}}
-SUMMARY:{{.Name}}
-DTSTART;TZID=America/New_York:{{.Start.Format "20060102T150405"}}
-DTEND;TZID=America/New_York:{{.End.Format "20060102T150405"}}
-END:VEVENT
-`
-
 func logPrintCal(tasks []*Task) (err error) {
 	//print the header
-	fmt.Println(`BEGIN:VCALENDAR
-PRODID:-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN
-VERSION:2.0
-BEGIN:VTIMEZONE
-TZID:America/New_York
-X-LIC-LOCATION:America/New_York
-BEGIN:DAYLIGHT
-TZOFFSETFROM:-0500
-TZOFFSETTO:-0400
-TZNAME:EDT
-DTSTART:19700308T020000
-RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
-END:DAYLIGHT
-BEGIN:STANDARD
-TZOFFSETFROM:-0400
-TZOFFSETTO:-0500
-TZNAME:EST
-DTSTART:19701101T020000
-RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
-END:STANDARD
-END:VTIMEZONE`)
+	fmt.Println(calendarHeader)
 
 	//be sure the print the footer
-	defer fmt.Println(`END:VCALENDAR`)
+	defer fmt.Println(calendarFooter)
 
 	//parse our template
-	t, err := template.New("").Parse(logCalendarTemplate)
+	t, err := template.New("").Parse(calendarTemplate)
 	if err != nil {
 		return
 	}
@@ -302,3 +276,38 @@ func randUID() string {
 	}
 	return fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
 }
+
+var (
+	calendarTemplate = `BEGIN:VEVENT
+CREATED:{{.Now.Format "20060102T150405Z"}}
+LAST-MODIFIED:{{.Now.Format "20060102T150405Z"}}
+UID:{{.UID}}
+SUMMARY:{{.Name}}
+DTSTART;TZID=America/New_York:{{.Start.Format "20060102T150405"}}
+DTEND;TZID=America/New_York:{{.End.Format "20060102T150405"}}
+END:VEVENT
+`
+	calendarHeader = `BEGIN:VCALENDAR
+PRODID:-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:America/New_York
+X-LIC-LOCATION:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
+END:STANDARD
+END:VTIMEZONE`
+
+	calendarFooter = `END:VCALENDAR`
+)
