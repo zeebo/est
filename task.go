@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type startLog struct {
+type StartLog struct {
 	Name string
 	When time.Time
 }
@@ -107,6 +107,15 @@ func (t Task) MatchedActual() (x time.Duration) {
 	return
 }
 
+func (t Task) MatchedString() string {
+	return fmt.Sprintf("%s: %s / %s (%0.2f)",
+		t.Name,
+		t.MatchedActual(),
+		t.MatchedEstimate(),
+		t.MatchedRatio(),
+	)
+}
+
 func (t Task) String() string {
 	return fmt.Sprintf("%s: %s / %s (%0.2f)",
 		t.Name,
@@ -120,6 +129,15 @@ func (t Task) LogName() string {
 	return t.logName
 }
 
+func (t Task) MatchedPretty() string {
+	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m",
+		t.logName,
+		t.MatchedActual(),
+		t.MatchedEstimate(),
+		t.MatchedRatio(),
+	)
+}
+
 func (t Task) Pretty() string {
 	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m",
 		t.logName,
@@ -127,6 +145,13 @@ func (t Task) Pretty() string {
 		t.Estimate,
 		t.Ratio(),
 	)
+}
+
+func (t Task) MatchedRatio() (ratio float64) {
+	if est := t.MatchedEstimate(); est != 0 {
+		ratio = float64(t.MatchedActual()) / float64(est)
+	}
+	return
 }
 
 func (t Task) Ratio() (ratio float64) {

@@ -12,7 +12,7 @@ type Backend interface {
 	Load(name string) (task *Task, err error)
 	Start(name string) (err error)
 	Stop() (err error)
-	Status() (log *startLog, err error)
+	Status() (log *StartLog, err error)
 	Find(regex string, before, after time.Time) (tasks []*Task, err error)
 	Rename(oldn, newn string) (err error)
 	Remove(name string) (err error)
@@ -25,6 +25,11 @@ func loadBackend(c *Config) (err error) {
 	switch c.Backend {
 	case "mongo":
 		b, err = openMongo(c.MongoConfig)
+		if err == nil {
+			defaultBackend = b
+		}
+	case "rpc":
+		b, err = openRPC(c.RPCConfig)
 		if err == nil {
 			defaultBackend = b
 		}

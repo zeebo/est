@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+type MongoConfig struct {
+	Host     string `json:",omitempty"`
+	Port     string `json:",omitempty"`
+	Username string `json:",omitempty"`
+	Password string `json:",omitempty"`
+	Database string `json:",omitempty"`
+}
+
 func openMongo(c MongoConfig) (b Backend, err error) {
 	//build a url for connecting based on the config
 	u := &url.URL{
@@ -111,7 +119,7 @@ func (m *mongoBackend) Remove(name string) (err error) {
 }
 
 func (m *mongoBackend) Start(name string) (err error) {
-	err = m.startlog.Insert(startLog{
+	err = m.startlog.Insert(StartLog{
 		Name: name,
 		When: time.Now(),
 	})
@@ -123,7 +131,7 @@ func (m *mongoBackend) Stop() (err error) {
 	return
 }
 
-func (m *mongoBackend) Status() (log *startLog, err error) {
+func (m *mongoBackend) Status() (log *StartLog, err error) {
 	n, err := m.startlog.Count()
 	if err != nil {
 		return
@@ -131,7 +139,7 @@ func (m *mongoBackend) Status() (log *startLog, err error) {
 	if n == 0 {
 		return
 	}
-	log = new(startLog)
+	log = new(StartLog)
 	err = m.startlog.Find(nil).One(log)
 	return
 }

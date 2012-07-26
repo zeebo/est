@@ -9,14 +9,7 @@ import (
 type Config struct {
 	Backend     string
 	MongoConfig MongoConfig `json:",omitempty"`
-}
-
-type MongoConfig struct {
-	Host     string `json:",omitempty"`
-	Port     string `json:",omitempty"`
-	Username string `json:",omitempty"`
-	Password string `json:",omitempty"`
-	Database string `json:",omitempty"`
+	RPCConfig   RPCConfig   `json:",omitempty"`
 }
 
 var defaultConfig = &Config{
