@@ -34,7 +34,7 @@ func (a Annotation) Negate() Annotation {
 }
 
 func (a Annotation) DeltaString() string {
-	if a.EstimateDelta > 0 {
+	if a.EstimateDelta != 0 {
 		return fmt.Sprintf("Estimate: %s", a.EstimateDelta)
 	}
 	return fmt.Sprintf("Actual: %s", a.ActualDelta)
@@ -60,14 +60,14 @@ func (a Annotation) Command() string {
 }
 
 func (a Annotation) Delta() string {
-	if a.EstimateDelta > 0 {
+	if a.EstimateDelta != 0 {
 		return fmt.Sprint(a.EstimateDelta)
 	}
 	return fmt.Sprint(a.ActualDelta)
 }
 
 func (a Annotation) String() string {
-	format := fmt.Sprintf("%% -%ds%s", timeFormatLen)
+	format := fmt.Sprintf("%% -%ds%%s", timeFormatLen)
 	return fmt.Sprintf(format, a.WhenString(), a.DeltaString())
 }
 
