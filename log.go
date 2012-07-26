@@ -139,6 +139,7 @@ func log(c *command) {
 		}
 		for _, task := range tasks {
 			t.Execute(os.Stdout, task)
+			fmt.Println("")
 		}
 	case logParams.logJson:
 		b, err := json.MarshalIndent(tasks, "", "\t")
