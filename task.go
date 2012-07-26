@@ -32,11 +32,33 @@ func (a Annotation) Negate() Annotation {
 	}
 }
 
-func (a Annotation) String() string {
+func (a Annotation) DeltaString() string {
 	if a.EstimateDelta > 0 {
-		return fmt.Sprintf(whenFormatString+"Estimate: %s", a.When.Format(timeFormat), a.EstimateDelta)
+		return fmt.Sprintf("Estimate: %s", a.EstimateDelta)
 	}
-	return fmt.Sprintf(whenFormatString+"Actual: %s", a.When.Format(timeFormat), a.ActualDelta)
+	return fmt.Sprintf("Actual: %s", a.ActualDelta)
+}
+
+func (a Annotation) WhenString() string {
+	return fmt.Sprintf(whenFormatString, a.When.Local().Format(timeFormat))
+}
+
+func (a Annotation) CommandName() string {
+	if a.EstimateDelta > 0 {
+		return "add-est"
+	}
+	return "add"
+}
+
+func (a Annotation) Delta() string {
+	if a.EstimateDelta > 0 {
+		return fmt.Sprint(a.EstimateDelta)
+	}
+	return fmt.Sprint(a.ActualDelta)
+}
+
+func (a Annotation) String() string {
+	return fmt.Sprintf("%s%s", a.WhenString(), a.DeltaString())
 }
 
 func (t *Task) Apply(ann Annotation) {

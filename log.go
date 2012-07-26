@@ -187,7 +187,7 @@ var defaultLogTemplate = `{{.}}
 {{end}}`
 
 var cmdTemplate = `est new {{.Name}}
-{{range .Annotations}}est {{if .EstimateDelta}}add-est{{else}}add{{end}} {{$.Name}} -when="` + whenTemplateString + `" {{if .EstimateDelta}}{{.EstimateDelta}}{{else}}{{.ActualDelta}}{{end}}
+{{range .Annotations}}est {{.CommandName}} {{$.Name}} -when="` + whenTemplateString + `" {{.Delta}}
 {{end}}`
 
 const logCalendarTemplate = `BEGIN:VEVENT

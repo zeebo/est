@@ -7,5 +7,5 @@ const (
 	timeFormatLen = len(timeFormat)
 )
 
-var whenTemplateString = fmt.Sprintf(`{{.When.Local.Format "%s" | printf "%% -%ds"}}`, timeFormat, timeFormatLen)
+var whenTemplateString = fmt.Sprintf(`{{.When.Local.Format "%s"}}`, timeFormat)
 var whenFormatString = fmt.Sprintf("%% -%ds", timeFormatLen)
