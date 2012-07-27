@@ -68,6 +68,11 @@ type RpcRenameArgs struct {
 	Oldn, Newn string
 }
 
+type RpcStatusReply struct {
+	Log    *StartLog
+	Exists bool
+}
+
 func (r *rpcClient) Save(task *Task) (err error) {
 	defer wrapError(&err)
 	err = r.cl.Call("Estimate.Save", task, nul)
@@ -109,7 +114,11 @@ func (r *rpcClient) Stop() (err error) {
 
 func (r *rpcClient) Status() (log *StartLog, err error) {
 	defer wrapError(&err)
-	err = r.cl.Call("Estimate.Status", nul, &log)
+	var reply RpcStatusReply
+	err = r.cl.Call("Estimate.Status", nul, &reply)
+	if reply.Exists {
+		log = reply.Log
+	}
 	return
 }
 

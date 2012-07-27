@@ -72,8 +72,18 @@ func (rpcServer) Stop(nula *None, nulb *None) (err error) {
 	return
 }
 
-func (rpcServer) Status(nul *None, log **StartLog) (err error) {
-	*log, err = defaultBackend.Status()
+func (rpcServer) Status(nul *None, reply *RpcStatusReply) (err error) {
+	log, err := defaultBackend.Status()
+
+	//exsists is the assertion that the log is not nil
+	reply.Exists = (log != nil)
+
+	//if it doesn't exist, we need to make one to not send a nil pointer
+	if !reply.Exists {
+		reply.Log = new(StartLog)
+	} else {
+		reply.Log = log
+	}
 	return
 }
 
