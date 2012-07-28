@@ -47,6 +47,11 @@ func (rpcServer) Save(task *Task, nul *None) (err error) {
 	return
 }
 
+func (rpcServer) SetDescription(args *RpcSetDescriptionArgs, nul *None) (err error) {
+	err = defaultBackend.SetDescription(args.Task, args.Desc)
+	return
+}
+
 func (rpcServer) AddAnnotation(args *RpcAddAnnotationArgs, nul *None) (err error) {
 	err = defaultBackend.AddAnnotation(args.Task, args.A)
 	return

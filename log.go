@@ -31,7 +31,6 @@ func init() {
 	cmd.flags.BoolVar(&logParams.json, "json", false, "show estimates in json format")
 	cmd.flags.BoolVar(&logParams.xml, "xml", false, "show estimates in xml format")
 	cmd.flags.BoolVar(&logParams.cal, "cal", false, "show estimates caldav format")
-	cmd.flags.BoolVar(&logParams.cmds, "cmds", false, "show estimates in the commands to make them")
 
 	commands["log"] = cmd
 }
@@ -44,7 +43,6 @@ var logParams struct {
 	json     bool
 	xml      bool
 	cal      bool
-	cmds     bool
 }
 
 type sortedTasks []*Task
@@ -152,34 +150,34 @@ func log(c *command) {
 	for _, task := range tasks {
 		task.setupTemplate(max+1, low.time(), high.time())
 	}
-	var showMatched bool
 
 	switch {
-	case logParams.cmds:
-		showMatched = true
-		logParams.template = cmdTemplate
-		fallthrough
-
 	default:
+		isDefault := logParams.template == ""
 		if logParams.template == "" {
 			logParams.template = defaulttemplate
-		} else {
-			showMatched = true
 		}
+
+		//parse the template
 		t, err := template.New("").Parse(logParams.template)
 		if err != nil {
 			c.Error(err)
 		}
+
 		for _, task := range tasks {
+			//if we're using the default template skip items with no matched
+			//annotations because it will show nothinbg
+			if isDefault && len(task.matchedAnnos) == 0 {
+				continue
+			}
+
+			//execute the template on the task
 			if err := t.Execute(os.Stdout, task); err != nil {
-				//if we're showing matched with the default templates and there
-				//arent any matched annotations, skip it.
-				if showMatched && len(task.matchedAnnos) == 0 {
-					continue
-				}
 				fmt.Println("")
 				c.Error(err)
 			}
+
+			//print a trailing newline
 			fmt.Println("")
 		}
 
@@ -211,10 +209,6 @@ func log(c *command) {
 
 var defaulttemplate = `{{.Pretty}}
 {{range .MatchedAnnotations}}{{$.LogName}}{{.}}
-{{end}}`
-
-var cmdTemplate = `est new {{.Name}}
-{{range .MatchedAnnotations}}{{.Command}}
 {{end}}`
 
 func logPrintCal(tasks []*Task) (err error) {

@@ -53,6 +53,11 @@ type None struct{}
 
 var nul = new(None)
 
+type RpcSetDescriptionArgs struct {
+	Task *Task
+	Desc string
+}
+
 type RpcAddAnnotationArgs struct {
 	Task *Task
 	A    Annotation
@@ -76,6 +81,15 @@ type RpcStatusReply struct {
 func (r *rpcClient) Save(task *Task) (err error) {
 	defer wrapError(&err)
 	err = r.cl.Call("Estimate.Save", task, nul)
+	return
+}
+
+func (r *rpcClient) SetDescription(task *Task, desc string) (err error) {
+	defer wrapError(&err)
+	err = r.cl.Call("Estimate.SetDescription", RpcSetDescriptionArgs{
+		Task: task,
+		Desc: desc,
+	}, nul)
 	return
 }
 

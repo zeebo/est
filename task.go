@@ -11,8 +11,9 @@ type StartLog struct {
 }
 
 type Task struct {
-	Name    string
-	logName string
+	Name        string
+	Description string `json:",omitempty" xml:",omitempty" bson:",omitempty"`
+	logName     string
 
 	Estimate     time.Duration
 	Actual       time.Duration
@@ -22,8 +23,8 @@ type Task struct {
 
 type Annotation struct {
 	When          time.Time
-	EstimateDelta time.Duration
-	ActualDelta   time.Duration
+	EstimateDelta time.Duration `json:",omitempty" xml:",omitempty" bson:",omitempty"`
+	ActualDelta   time.Duration `json:",omitempty" xml:",omitempty" bson:",omitempty"`
 }
 
 func (a Annotation) Negate() Annotation {
@@ -108,20 +109,22 @@ func (t Task) MatchedActual() (x time.Duration) {
 }
 
 func (t Task) MatchedString() string {
-	return fmt.Sprintf("%s: %s / %s (%0.2f)",
+	return fmt.Sprintf("%s: %s / %s (%0.2f)%s",
 		t.Name,
 		t.MatchedActual(),
 		t.MatchedEstimate(),
 		t.MatchedRatio(),
+		wrap(t.Description, "\n", 80),
 	)
 }
 
 func (t Task) String() string {
-	return fmt.Sprintf("%s: %s / %s (%0.2f)",
+	return fmt.Sprintf("%s: %s / %s (%0.2f)%s",
 		t.Name,
 		t.Actual,
 		t.Estimate,
 		t.Ratio(),
+		wrap(t.Description, "\n", 80),
 	)
 }
 
@@ -130,20 +133,22 @@ func (t Task) LogName() string {
 }
 
 func (t Task) MatchedPretty() string {
-	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m",
+	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m%s",
 		t.logName,
 		t.MatchedActual(),
 		t.MatchedEstimate(),
 		t.MatchedRatio(),
+		wrap(t.Description, "\n", 80),
 	)
 }
 
 func (t Task) Pretty() string {
-	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m",
+	return fmt.Sprintf("\033[1m%s%s / %s (%0.2f)\033[0m%s",
 		t.logName,
 		t.Actual,
 		t.Estimate,
 		t.Ratio(),
+		wrap(t.Description, "\n", 80),
 	)
 }
 
@@ -159,4 +164,12 @@ func (t Task) Ratio() (ratio float64) {
 		ratio = float64(t.Actual) / float64(t.Estimate)
 	}
 	return
+}
+
+func wrap(in, prefix string, width int) string {
+	if in == "" {
+		return ""
+	}
+
+	return prefix + in
 }

@@ -129,7 +129,16 @@ func gen(c *command) {
 	}
 	lf := float64(len(rs))
 	sigma := math.Sqrt(lf*sumsq-sum*sum) / lf
-	fmt.Println("Sigma: ", sigma)
+	fmt.Println("Sigma(ratio): ", sigma)
+
+	sum, sumsq = 0, 0
+	for _, r := range results {
+		fr := float64(r)
+		sum, sumsq = sum+fr, sumsq+(fr*fr)
+	}
+	lf = float64(len(results))
+	sigma = math.Sqrt(lf*sumsq-sum*sum) / lf
+	fmt.Println("Sigma(time):  ", time.Duration(sigma))
 
 	//print off the percentiles
 	if len(ptiles) > 0 {

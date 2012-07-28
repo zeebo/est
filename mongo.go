@@ -78,6 +78,14 @@ func (m *mongoBackend) Load(name string) (task *Task, err error) {
 	return
 }
 
+func (m *mongoBackend) SetDescription(task *Task, desc string) (err error) {
+	ch := bson.D{
+		{"$set", d{"description": desc}},
+	}
+	err = m.tasks.Update(d{"name": task.Name}, ch)
+	return
+}
+
 func (m *mongoBackend) AddAnnotation(task *Task, a Annotation) (err error) {
 	//create the change document
 	ch := bson.D{

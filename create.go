@@ -14,7 +14,7 @@ func init() {
 
 		needsBackend: true,
 
-		flags: flag.NewFlagSet("start", flag.ExitOnError),
+		flags: flag.NewFlagSet("create", flag.ExitOnError),
 		run:   create,
 	}
 
