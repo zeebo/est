@@ -12,7 +12,7 @@ type RPCConfig struct {
 	Address string `json:",omitempty"`
 }
 
-func openRPC(c RPCConfig) (b Backend, err error) {
+func openRPC(c *RPCConfig) (b Backend, err error) {
 	cl, err := rpc.DialHTTP(c.Network, c.Address)
 	if err != nil {
 		return

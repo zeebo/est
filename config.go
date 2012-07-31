@@ -8,13 +8,13 @@ import (
 
 type Config struct {
 	Backend     string
-	MongoConfig MongoConfig `json:",omitempty"`
-	RPCConfig   RPCConfig   `json:",omitempty"`
+	MongoConfig *MongoConfig `json:",omitempty"`
+	RPCConfig   *RPCConfig   `json:",omitempty"`
 }
 
 var defaultConfig = &Config{
 	Backend: "mongo",
-	MongoConfig: MongoConfig{
+	MongoConfig: &MongoConfig{
 		Host:     "localhost",
 		Database: "est",
 	},

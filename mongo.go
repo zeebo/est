@@ -16,7 +16,7 @@ type MongoConfig struct {
 	Database string `json:",omitempty"`
 }
 
-func openMongo(c MongoConfig) (b Backend, err error) {
+func openMongo(c *MongoConfig) (b Backend, err error) {
 	//build a url for connecting based on the config
 	u := &url.URL{
 		Scheme: "mongodb",

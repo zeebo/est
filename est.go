@@ -30,6 +30,7 @@ func main() {
 	}
 
 	//attempt to load the configuration
+	defaultConfig = &Config{}
 	err = json.NewDecoder(f).Decode(defaultConfig)
 	f.Close()
 	if err != nil {
